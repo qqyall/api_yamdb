@@ -12,7 +12,7 @@ class MyUser(AbstractUser):
         choices=[('user', 'User'), ('moderator', 'Moderator'),
                  ('admin', 'Admin')])
     confirmation_code = models.CharField('Confirmation Code',
-                                         max_length=20, blank=True)
+                                         max_length=256, blank=True)
 
     def generate_confirmation_code(self):
         self.confirmation_code = get_random_string(length=20)
