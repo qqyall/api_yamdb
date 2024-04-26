@@ -12,6 +12,9 @@ class MyUserSerializer(serializers.ModelSerializer):
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role',
         )
+        extra_kwargs = {
+            'confirmation_code': {'write_only': True}
+        }
 
 
 class TitleSerializer(serializers.ModelSerializer):
