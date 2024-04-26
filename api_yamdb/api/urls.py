@@ -22,9 +22,12 @@ router.register(
     CommentViewSet, basename='comment'
 )
 
+router.register('auth/signup/', AuthSignup, basename='signup')
+router.register('auth/token/', AuthToken, basename='token',)
+
 urlpatterns = [
     # надо подумать над auth/signup/ и auth/token/
-    path('auth/signup/', AuthSignup.as_view(), name='signup'),
-    path('auth/token/', AuthToken.as_view(), name='token'),
+    # path('auth/signup/', AuthSignup.as_view(), name='signup'),
+    # path('auth/token/', AuthToken.as_view(), name='token'),
     path('', include(router.urls)),
 ]

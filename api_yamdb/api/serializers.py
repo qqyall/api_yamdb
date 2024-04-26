@@ -2,13 +2,13 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 
-from reviews.models import Title, Genre, Category, User, Review, Comment
+from reviews.models import Title, Genre, Category, MyUser, Review, Comment
 
 
 class MyUserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = User
+        model = MyUser
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role',
         )

@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from api.permissions import (
     IsAdminOnly, IsAdminOrReadOnly, IsOwnerAdminModeratorOrReadOnly
 )
-from reviews.models import Title, Genre, Category, User
+from reviews.models import Title, Genre, Category, MyUser
 from .serializers import (
     TitleSerializer, GenreSerializer, CategorySerializer, ReviewSerializer,
     CommentSerializer, MyUserSerializer
@@ -12,7 +12,7 @@ from .serializers import (
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
     permission_classes = (IsAdminOnly,)
     filter_backends = (filters.SearchFilter,)
