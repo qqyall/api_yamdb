@@ -1,9 +1,9 @@
 from rest_framework import viewsets
 
-from api_yamdb.models import Comment, Review
+from reviews.models import Comment, Review
 
-from .permissions import AuthorOrReadOnly, ReadOnly
-from .serializers import (CommentSerializer, ReviewSerializer)
+from api.permissions import AuthorOrReadOnly, ReadOnly
+from api.serializers import (CommentSerializer, ReviewSerializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

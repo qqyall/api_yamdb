@@ -22,9 +22,6 @@ router.register(
     CommentViewSet, basename='comment'
 )
 
-# router.register('auth/signup/', AuthSignup, basename='signup')
-# router.register('auth/token/', AuthToken, basename='token',)
-
 urlpatterns = [
     # Map the 'create' action from the AuthSignup viewset to the 'POST' method
     path('auth/signup/', AuthSignup.as_view({'post': 'create'}), name='signup'),
