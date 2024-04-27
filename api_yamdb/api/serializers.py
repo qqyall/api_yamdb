@@ -6,7 +6,6 @@ from reviews.models import Title, Genre, Category, MyUser, Review, Comment
 
 
 class MyUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = MyUser
         fields = (
@@ -15,6 +14,16 @@ class MyUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'confirmation_code': {'write_only': True}
         }
+
+    def validate_email(self, value):
+        if len(value) > 254:
+            raise serializers.ValidationError("Email must not exceed 254 characters.")
+        return value
+
+    def validate_username(self, value):
+        if len(value) > 150:
+            raise serializers.ValidationError("Username must not exceed 150 characters.")
+        return value
 
 
 class TitleSerializer(serializers.ModelSerializer):
