@@ -7,6 +7,7 @@ from .views import (
     ReviewViewSet, CommentViewSet, AuthSignup, AuthToken
 )
 
+from api.views import UserMeView
 
 router = routers.DefaultRouter()
 
@@ -23,10 +24,8 @@ router.register(
 )
 
 urlpatterns = [
-    # Map the 'create' action from the AuthSignup viewset to the 'POST' method
     path('auth/signup/', AuthSignup.as_view({'post': 'create'}), name='signup'),
-    # Map the 'create' action from the AuthToken viewset to the 'POST' method
+    path('users/me/', UserMeView.as_view(), name='user-me'),
     path('auth/token/', AuthToken.as_view({'post': 'create'}), name='token'),
-    # Include all routes registered with the router
     path('', include(router.urls)),
 ]

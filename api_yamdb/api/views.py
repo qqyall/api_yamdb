@@ -4,6 +4,9 @@ from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import permissions
+from rest_framework.views import APIView
+from django.db.models import Q
 
 from api.permissions import (
     IsAdminOnly, IsAdminOrReadOnly, IsOwnerAdminModeratorOrReadOnly
@@ -57,6 +60,20 @@ class AuthSignup(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
+        # Check if the user already exists
+        user_exists = MyUser.objects.filter(
+            Q(username=request.data.get('username')) |
+            Q(email=request.data.get('email'))
+        ).exists()
+
+        if user_exists:
+            # If the user exists, pretend the registration is successful
+            return Response(
+                {'username': request.data.get('username'),
+                 'email':
+                 request.data.get('email')}, status=status.HTTP_200_OK)
+
+        # If not, proceed as normal
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -68,8 +85,10 @@ class AuthSignup(viewsets.ModelViewSet):
                 [user.email],
                 fail_silently=False,
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class AuthToken(viewsets.ModelViewSet):
@@ -85,8 +104,26 @@ class AuthToken(viewsets.ModelViewSet):
                 refresh = RefreshToken.for_user(user)
                 return Response(
                     {'refresh': str(refresh),
-                     'access': str(refresh.access_token)}, status=status.HTTP_200_OK)
+                     'access':
+                     str(refresh.access_token)}, status=status.HTTP_200_OK)
         except MyUser.DoesNotExist:
             pass
         return Response({'error': 'Invalid username or confirmation code'},
-                        status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_404_NOT_FOUND)
+
+
+class UserMeView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
+
+    def get(self, request):
+        serializer = MyUserSerializer(request.user)
+        return Response(serializer.data)
+
+    def patch(self, request, *args, **kwargs):
+        user = request.user
+        serializer = MyUserSerializer(user, data=request.data, partial=True,
+                                      context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

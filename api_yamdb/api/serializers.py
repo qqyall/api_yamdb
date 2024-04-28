@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Title, Genre, Category, MyUser, Review, Comment
 
@@ -8,22 +8,45 @@ from reviews.models import Title, Genre, Category, MyUser, Review, Comment
 class MyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
-        )
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
         extra_kwargs = {
+            'username': {'required': True},
+            'email': {'required': True,
+                      'validators':
+                      [UniqueValidator(queryset=MyUser.objects.all())]},
+            'role': {'required': False},
             'confirmation_code': {'write_only': True}
         }
 
     def validate_email(self, value):
         if len(value) > 254:
-            raise serializers.ValidationError("Email must not exceed 254 characters.")
+            raise serializers.ValidationError(
+                "Email must not exceed 254 characters.")
         return value
 
     def validate_username(self, value):
+        restricted_usernames = ['me', 'admin', 'null']
+        if value.lower() in restricted_usernames:
+            raise serializers.ValidationError("This username is restricted and cannot be used.")
         if len(value) > 150:
             raise serializers.ValidationError("Username must not exceed 150 characters.")
         return value
+
+    def to_representation(self, instance):
+        """Modify the output data to only include fields that were in the input data."""
+        ret = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.method == 'POST':
+            included_fields = request.data.keys()
+            return {field: ret[field] for field in included_fields if field in ret}
+        return ret
+
+    def update(self, instance, validated_data):
+        if 'role' in validated_data:
+            if not self.context['request'].user.is_superuser:
+                validated_data.pop('role', None)
+        return super().update(instance, validated_data)
 
 
 class TitleSerializer(serializers.ModelSerializer):
