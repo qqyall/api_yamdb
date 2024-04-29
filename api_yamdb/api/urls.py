@@ -7,7 +7,7 @@ from .views import (
     ReviewViewSet, CommentViewSet, AuthSignup, AuthToken
 )
 
-from api.views import UserMeView
+from api.views import UserMeView, AuthToken
 
 router = routers.DefaultRouter()
 
