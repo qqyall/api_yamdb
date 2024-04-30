@@ -4,10 +4,8 @@ import pytest
 from django.core import mail
 from django.db.utils import IntegrityError
 
-from tests.utils import (
-    invalid_data_for_user_patch_and_creation,
-    invalid_data_for_username_and_email_fields
-)
+from tests.utils import (invalid_data_for_user_patch_and_creation,
+                         invalid_data_for_username_and_email_fields)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -222,7 +220,6 @@ class Test00UserRegistration:
 
     def test_00_obtain_jwt_token_invalid_data(self, client):
         response = client.post(self.URL_TOKEN)
-        print(response.content)
         assert response.status_code != HTTPStatus.NOT_FOUND, (
             f'Эндпоинт `{self.URL_TOKEN}` не найдена. Проверьте настройки в '
             '*urls.py*.'
