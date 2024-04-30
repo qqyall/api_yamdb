@@ -6,11 +6,15 @@ from django.utils.crypto import get_random_string
 class MyUser(AbstractUser):
     """Пользовательская модель."""
 
+    class Meta:
+        ordering = ['id']
+
     bio = models.TextField('Биография', blank=True)
+    email = models.EmailField(unique=True, blank=False, null=False)
     role = models.CharField(
         'Role', max_length=50,
         choices=[('user', 'User'), ('moderator', 'Moderator'),
-                 ('admin', 'Admin')])
+                 ('admin', 'Admin')], default='user')
     confirmation_code = models.CharField('Confirmation Code',
                                          max_length=256, blank=True)
 
