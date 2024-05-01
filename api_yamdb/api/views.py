@@ -1,21 +1,23 @@
-from django.core.mail import send_mail
+from api.permissions import (AnonimReadOnly, IsAdminOnly, IsAdminOrReadOnly,
+                             IsSuperUserIsAdminIsModeratorIsAuthor,
+                             IsSuperUserOrIsAdminOnly)
 from django.conf import settings
-from rest_framework import viewsets, filters, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated, IsAdminUser
+from django.core.mail import send_mail
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import permissions
 from rest_framework.views import APIView
-from django.db.models import Q
+from rest_framework_simplejwt.tokens import RefreshToken
+from reviews.models import Category, Genre, MyUser, Review, Title
 
-from api.permissions import (
-    IsAdminOnly, IsAdminOrReadOnly, IsOwnerAdminModeratorOrReadOnly
-)
-from reviews.models import Title, Genre, Category, MyUser
-from .serializers import (
-    TitleSerializer, GenreSerializer, CategorySerializer, ReviewSerializer,
-    CommentSerializer, MyUserSerializer
-)
+from .filters import TitleFilter
+from .mixins import CreateListDestroyViewSet
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, MyUserSerializer, ReviewSerializer,
+                          TitleGetSerializer, TitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -31,40 +33,11 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAdminOnly()]
         return super().get_permissions()
 
-
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
             return Response({'detail': 'Method "PUT" not allowed.'},
                             status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().update(request, *args, **kwargs)
-
-
-class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-
-
-class GenresViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-
-
-class CategoriesViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,
-                          IsOwnerAdminModeratorOrReadOnly)
-
-
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,
-                          IsOwnerAdminModeratorOrReadOnly)
 
 
 class AuthSignup(viewsets.ModelViewSet):
@@ -124,7 +97,8 @@ class AuthToken(viewsets.ViewSet):
         confirmation_code = request.data.get('confirmation_code')
 
         if not username or not confirmation_code:
-            # If either username or confirmation code is missing, return 400 Bad Request
+            # If either username or confirmation code is missing,
+            # return 400 BadRequest
             return Response(
                 {'error': 'Both username and confirmation code are required.'},
                 status=status.HTTP_400_BAD_REQUEST)
@@ -162,3 +136,90 @@ class UserMeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TitlesViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    serializer_class = TitleSerializer
+    permission_classes = (AnonimReadOnly | IsSuperUserOrIsAdminOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleGetSerializer
+        return TitleSerializer
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response({'detail': 'Method "PUT" not allowed.'},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+
+
+class GenresViewSet(CreateListDestroyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class CategoriesViewSet(CreateListDestroyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,
+                          IsSuperUserIsAdminIsModeratorIsAuthor)
+
+    def get_title(self):
+        """Возвращает объект текущего произведения."""
+        title_id = self.kwargs.get('title_id')
+        return get_object_or_404(Title, pk=title_id)
+
+    def get_queryset(self):
+        """Возвращает queryset c отзывами для текущего произведения."""
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        """Создает отзыв для текущего произведения,
+        где автором является текущий пользователь."""
+        serializer.save(
+            author=self.request.user,
+            title=self.get_title()
+        )
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response({'detail': 'Method "PUT" not allowed.'},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,
+                          IsSuperUserIsAdminIsModeratorIsAuthor)
+
+    def get_review(self):
+        """Возвращает объект текущего отзыва."""
+        review_id = self.kwargs.get('review_id')
+        return get_object_or_404(Review, pk=review_id)
+
+    def get_queryset(self):
+        """Возвращает queryset c комментариями для текущего отзыва."""
+        return self.get_review().comments.all()
+
+    def perform_create(self, serializer):
+        """Создает комментарий для текущего отзыва,
+        где автором является текущий пользователь."""
+        serializer.save(
+            author=self.request.user,
+            review=self.get_review()
+        )
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response({'detail': 'Method "PUT" not allowed.'},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)

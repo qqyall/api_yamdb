@@ -1,6 +1,6 @@
 import csv
+
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from users.models import MyUser
 
 
@@ -26,10 +26,16 @@ class Command(BaseCommand):
                         'email': row['email'],
                         'role': row['role'],
                         'bio': row['bio'] if row['bio'] else '',
-                        'first_name': row['first_name'] if row['first_name'] else '',
-                        'last_name': row['last_name'] if row['last_name'] else ''
+                        'first_name': (
+                            row['first_name'] if row['first_name'] else ''),
+                        'last_name': (
+                            row['last_name'] if row['last_name'] else '')
                     }
                 )
                 if created:
                     users_created += 1
-            self.stdout.write(self.style.SUCCESS(f'{users_created} users imported successfully!'))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'{users_created} users imported successfully!'
+                )
+            )

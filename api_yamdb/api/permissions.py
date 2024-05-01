@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -14,9 +14,45 @@ class IsAdminOnly(BasePermission):
     """Allows access only to admin users and superusers."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and (request.user.role == 'admin' or request.user.is_superuser)
+        return request.user.is_authenticated and (
+            request.user.role == 'admin' or request.user.is_superuser)
 
 
+class AnonimReadOnly(BasePermission):
+    """Разрешает анонимному пользователю только безопасные запросы."""
 
-class IsOwnerAdminModeratorOrReadOnly(BasePermission):
-    pass
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
+
+
+class IsSuperUserOrIsAdminOnly(BasePermission):
+    """
+    Предоставляет права на осуществление запросов
+    только суперпользователю Джанго, админу Джанго или
+    аутентифицированному пользователю с ролью admin.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and (request.user.is_superuser
+                 or request.user.role == 'admin')
+        )
+
+
+class IsSuperUserIsAdminIsModeratorIsAuthor(BasePermission):
+    """
+    Разрешает анонимному пользователю только безопасные запросы.
+    Доступ к запросам PATCH и DELETE предоставляется только
+    админу, аутентифицированным пользователям
+    с ролью admin или moderator, а также автору объекта.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and (request.user.role == 'admin'
+                 or request.user.role == 'moderator'
+                 or request.user == obj.author)
+        )
