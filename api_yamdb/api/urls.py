@@ -1,13 +1,9 @@
+from api.views import AuthToken, UserMeView
 from django.urls import include, path
-
 from rest_framework import routers
 
-from .views import (
-    UserViewSet, TitlesViewSet, GenresViewSet, CategoriesViewSet,
-    ReviewViewSet, CommentViewSet, AuthSignup, AuthToken
-)
-
-from api.views import UserMeView, AuthToken
+from .views import (AuthSignup, AuthToken, CategoriesViewSet, CommentViewSet,
+                    GenresViewSet, ReviewViewSet, TitlesViewSet, UserViewSet)
 
 router = routers.DefaultRouter()
 
@@ -24,7 +20,8 @@ router.register(
 )
 
 urlpatterns = [
-    path('auth/signup/', AuthSignup.as_view({'post': 'create'}), name='signup'),
+    path('auth/signup/',
+         AuthSignup.as_view({'post': 'create'}), name='signup'),
     path('users/me/', UserMeView.as_view(), name='user-me'),
     path('auth/token/', AuthToken.as_view({'post': 'create'}), name='token'),
     path('', include(router.urls)),

@@ -1,8 +1,6 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.validators import UniqueValidator
-
-from reviews.models import Title, Genre, Category, MyUser, Review, Comment
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from reviews.models import Category, Comment, Genre, MyUser, Review, Title
 
 
 class MyUserSerializer(serializers.ModelSerializer):
@@ -28,18 +26,20 @@ class MyUserSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         restricted_usernames = ['me', 'admin', 'null']
         if value.lower() in restricted_usernames:
-            raise serializers.ValidationError("This username is restricted and cannot be used.")
+            raise serializers.ValidationError(
+                "This username is restricted and cannot be used.")
         if len(value) > 150:
-            raise serializers.ValidationError("Username must not exceed 150 characters.")
+            raise serializers.ValidationError(
+                "Username must not exceed 150 characters.")
         return value
 
     def to_representation(self, instance):
-        """Modify the output data to only include fields that were in the input data."""
         ret = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == 'POST':
             included_fields = request.data.keys()
-            return {field: ret[field] for field in included_fields if field in ret}
+            return {
+                field: ret[field] for field in included_fields if field in ret}
         return ret
 
     def update(self, instance, validated_data):
@@ -59,7 +59,6 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         slug_field='slug',
     )
-    # Рейтинг
     rating = 25
 
     class Meta:

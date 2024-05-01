@@ -1,21 +1,17 @@
-from django.core.mail import send_mail
+from api.permissions import (IsAdminOnly, IsAdminOrReadOnly,
+                             IsOwnerAdminModeratorOrReadOnly)
 from django.conf import settings
-from rest_framework import viewsets, filters, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated, IsAdminUser
+from django.core.mail import send_mail
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import permissions
 from rest_framework.views import APIView
-from django.db.models import Q
+from rest_framework_simplejwt.tokens import RefreshToken
+from reviews.models import Category, Genre, MyUser, Title
 
-from api.permissions import (
-    IsAdminOnly, IsAdminOrReadOnly, IsOwnerAdminModeratorOrReadOnly
-)
-from reviews.models import Title, Genre, Category, MyUser
-from .serializers import (
-    TitleSerializer, GenreSerializer, CategorySerializer, ReviewSerializer,
-    CommentSerializer, MyUserSerializer
-)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, MyUserSerializer, ReviewSerializer,
+                          TitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,7 +26,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [IsAdminOnly()]
         return super().get_permissions()
-
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
@@ -114,24 +109,21 @@ class AuthSignup(viewsets.ModelViewSet):
 
 
 class AuthToken(viewsets.ViewSet):
-    """
-    Custom view for handling authentication token creation.
-    """
-    permission_classes = [AllowAny]  # Allow requests without authentication
+    """Custom view for handling authentication token creation."""
+
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         username = request.data.get('username')
         confirmation_code = request.data.get('confirmation_code')
 
         if not username or not confirmation_code:
-            # If either username or confirmation code is missing, return 400 Bad Request
             return Response(
                 {'error': 'Both username and confirmation code are required.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
         user = MyUser.objects.filter(username=username).first()
         if not user:
-            # If user does not exist, return 404 Not Found
             return Response({'error': 'Invalid username'},
                             status=status.HTTP_404_NOT_FOUND)
 
@@ -141,10 +133,8 @@ class AuthToken(viewsets.ViewSet):
                 {'refresh': str(refresh), 'access': str(refresh.access_token)},
                 status=status.HTTP_200_OK
             )
-        else:
-            # If the confirmation code is invalid, return 400 Bad Request
-            return Response({'error': 'Invalid confirmation code'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid confirmation code'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeView(APIView):
