@@ -20,7 +20,8 @@ router.register(
 )
 
 urlpatterns = [
-    path('auth/signup/', AuthSignup.as_view({'post': 'create'}), name='signup'),
+    path('auth/signup/',
+         AuthSignup.as_view({'post': 'create'}), name='signup'),
     path('users/me/', UserMeView.as_view(), name='user-me'),
     path('auth/token/', AuthToken.as_view({'post': 'create'}), name='token'),
     path('', include(router.urls)),

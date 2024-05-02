@@ -1,5 +1,6 @@
 import csv
 
+
 from django.core.management.base import BaseCommand
 from users.models import MyUser
 
@@ -8,7 +9,8 @@ class Command(BaseCommand):
     help = 'Loads users from a CSV file into the database'
 
     def add_arguments(self, parser):
-        parser.add_argument('csv_file', type=str, help='The CSV file to load users from')
+        parser.add_argument('csv_file', type=str,
+                            help='The CSV file to load users from')
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Starting to import users...'))

@@ -220,7 +220,6 @@ class Test00UserRegistration:
 
     def test_00_obtain_jwt_token_invalid_data(self, client):
         response = client.post(self.URL_TOKEN)
-        print(response.content)
         assert response.status_code != HTTPStatus.NOT_FOUND, (
             f'Эндпоинт `{self.URL_TOKEN}` не найдена. Проверьте настройки в '
             '*urls.py*.'

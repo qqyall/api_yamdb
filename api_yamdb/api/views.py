@@ -10,6 +10,7 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, MyUser, Review, Title
 
@@ -87,10 +88,9 @@ class AuthSignup(viewsets.ModelViewSet):
 
 
 class AuthToken(viewsets.ViewSet):
-    """
-    Custom view for handling authentication token creation.
-    """
-    permission_classes = [AllowAny]  # Allow requests without authentication
+    """Custom view for handling authentication token creation."""
+
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         username = request.data.get('username')
@@ -105,7 +105,6 @@ class AuthToken(viewsets.ViewSet):
 
         user = MyUser.objects.filter(username=username).first()
         if not user:
-            # If user does not exist, return 404 Not Found
             return Response({'error': 'Invalid username'},
                             status=status.HTTP_404_NOT_FOUND)
 
@@ -115,10 +114,8 @@ class AuthToken(viewsets.ViewSet):
                 {'refresh': str(refresh), 'access': str(refresh.access_token)},
                 status=status.HTTP_200_OK
             )
-        else:
-            # If the confirmation code is invalid, return 400 Bad Request
-            return Response({'error': 'Invalid confirmation code'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid confirmation code'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeView(APIView):

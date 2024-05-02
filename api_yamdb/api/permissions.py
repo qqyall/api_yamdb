@@ -1,4 +1,5 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -14,6 +15,8 @@ class IsAdminOnly(BasePermission):
     """Allows access only to admin users and superusers."""
 
     def has_permission(self, request, view):
+        return request.user.is_authenticated and (
+            request.user.role == 'admin' or request.user.is_superuser)
         return request.user.is_authenticated and (
             request.user.role == 'admin' or request.user.is_superuser)
 

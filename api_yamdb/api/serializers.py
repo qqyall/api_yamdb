@@ -43,6 +43,8 @@ class MyUserSerializer(serializers.ModelSerializer):
             included_fields = request.data.keys()
             return {
                 field: ret[field] for field in included_fields if field in ret}
+            return {
+                field: ret[field] for field in included_fields if field in ret}
         return ret
 
     def update(self, instance, validated_data):
