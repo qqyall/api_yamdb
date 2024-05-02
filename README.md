@@ -24,6 +24,8 @@ git clone https://github.com/qqyall/api_yamdb
 cd api_yamdb
 ```
 
+* **Если у вас Linux/macOS**
+
 Cоздать и активировать виртуальное окружение:
 
 ```
@@ -54,6 +56,39 @@ python3 manage.py importcsv
 Запустить проект:
 ```
 python3 manage.py runserver
+```
+* **Если у вас windows**
+
+Cоздать и активировать виртуальное окружение:
+
+```
+python -m venv env
+```
+```
+source env/scripts/activate
+```
+
+Установить зависимости из файла requirements.txt:
+```
+python -m pip install --upgrade pip
+```
+```
+pip install -r requirements.txt
+```
+Выполнить миграции:
+```
+python manage.py makemigrations
+```
+```
+python manage.py migrate
+```
+Загрузить тестовые данные:
+```
+python manage.py importcsv
+```
+Запустить проект:
+```
+python manage.py runserver
 ```
 
 ## Примеры запросов
@@ -108,4 +143,4 @@ GET .../api/v1/categories/
 
 [Жандос Абдирайым](https://github.com/abdiraiymzhandos) - управление пользователями: система регистрации и аутентификации, права доступа, работа с токенами, система подтверждения через email.
 
-[Анна Вострикова](https://github.com/agvostrikova) - модели, view и эндпоинты для произвдений, категорий, жанров. 
+[Анна Вострикова](https://github.com/agvostrikova) - модели, view и эндпоинты для произведений, категорий, жанров. 
