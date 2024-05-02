@@ -24,7 +24,7 @@ git clone https://github.com/qqyall/api_yamdb
 cd api_yamdb
 ```
 
-* **Если у вас Linux/macOS**
+:arrow_down_small: **Если у вас Linux/macOS**
 
 Cоздать и активировать виртуальное окружение:
 
@@ -57,7 +57,7 @@ python3 manage.py importcsv
 ```
 python3 manage.py runserver
 ```
-* **Если у вас windows**
+:arrow_down_small: **Если у вас windows**
 
 Cоздать и активировать виртуальное окружение:
 
