@@ -1,57 +1,58 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from reviews.models import Category, Comment, Genre, MyUser, Review, Title
+from rest_framework.validators import UniqueValidator
+from django.core.validators import MaxLengthValidator, RegexValidator
+from reviews.models import MyUser
+from .constants import RESTRICTED_USERNAMES
 
 
 class MyUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=150,
+        validators=[
+            UniqueValidator(queryset=MyUser.objects.all()),
+            MaxLengthValidator(150),
+            RegexValidator(r'^[\w.@+-]+$',
+                           message='Username must consist of letters,'
+                           'digits, or @/./+/-/_ characters.')
+        ]
+    )
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(queryset=MyUser.objects.all()),
+            MaxLengthValidator(254)
+        ]
+    )
+
     class Meta:
         model = MyUser
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-        extra_kwargs = {
-            'username': {'required': True},
-            'email': {'required': True,
-                      'validators':
-                      [UniqueValidator(queryset=MyUser.objects.all())]},
-            'role': {'required': False},
-            'confirmation_code': {'write_only': True}
-        }
-
-    def validate_email(self, value):
-        if len(value) > 254:
-            raise serializers.ValidationError(
-                "Email must not exceed 254 characters.")
-        return value
 
     def validate_username(self, value):
-        restricted_usernames = ['me', 'admin', 'null']
-        if value.lower() in restricted_usernames:
+        if value.lower() in RESTRICTED_USERNAMES:
             raise serializers.ValidationError(
                 'This username is restricted and cannot be used.')
-        if len(value) > 150:
-            raise serializers.ValidationError(
-                'Username must not exceed 150 characters.')
         return value
 
     def to_representation(self, instance):
-        """Modify the output data to only include
-        fields that were in the input data."""
-
-        ret = super().to_representation(instance)
+        representation_data = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == 'POST':
             included_fields = request.data.keys()
             return {
-                field: ret[field] for field in included_fields if field in ret}
-            return {
-                field: ret[field] for field in included_fields if field in ret}
-        return ret
+                field: representation_data[field]
+                for field in included_fields if field in representation_data
+            }
+        return representation_data
 
     def update(self, instance, validated_data):
         if 'role' in validated_data:
             if not self.context['request'].user.is_superuser:
                 validated_data.pop('role', None)
         return super().update(instance, validated_data)
+
 
 
 class GenreSerializer(serializers.ModelSerializer):
