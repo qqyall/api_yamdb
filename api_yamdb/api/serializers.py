@@ -1,17 +1,17 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from reviews.models import Category, Comment, Genre, MyUser, Review, Title
+from reviews.models import Category, Comment, Genre, User, Review, Title
 from rest_framework.validators import UniqueValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
-from reviews.models import MyUser
+from reviews.models import User
 from .constants import RESTRICTED_USERNAMES
 
 
-class MyUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
         validators=[
-            UniqueValidator(queryset=MyUser.objects.all()),
+            UniqueValidator(queryset=User.objects.all()),
             MaxLengthValidator(150),
             RegexValidator(r'^[\w.@+-]+$',
                            message='Username must consist of letters,'
@@ -20,13 +20,13 @@ class MyUserSerializer(serializers.ModelSerializer):
     )
     email = serializers.EmailField(
         validators=[
-            UniqueValidator(queryset=MyUser.objects.all()),
+            UniqueValidator(queryset=User.objects.all()),
             MaxLengthValidator(254)
         ]
     )
 
     class Meta:
-        model = MyUser
+        model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
 

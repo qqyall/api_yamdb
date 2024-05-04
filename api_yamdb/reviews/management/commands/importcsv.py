@@ -3,7 +3,7 @@ import os
 
 from django.core.management import BaseCommand
 from django.db import IntegrityError
-from reviews.models import (Category, Comment, Genre, GenreTitle, MyUser,
+from reviews.models import (Category, Comment, Genre, GenreTitle, User,
                             Review, Title)
 
 from api_yamdb.settings import CSV_FILES_DIR
@@ -13,7 +13,7 @@ FILES_CLASSES = {
     'genre': Genre,
     'titles': Title,
     'genre_title': GenreTitle,
-    'users': MyUser,
+    'users': User,
     'review': Review,
     'comments': Comment,
 }
@@ -22,7 +22,7 @@ FIELDS = {
     'category': ('category', Category),
     'title_id': ('title', Title),
     'genre_id': ('genre', Genre),
-    'author': ('author', MyUser),
+    'author': ('author', User),
     'review_id': ('review', Review),
 }
 

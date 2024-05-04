@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 
 
-class MyUser(AbstractUser):
+class User(AbstractUser):
     """Пользовательская модель."""
 
     class Meta:
