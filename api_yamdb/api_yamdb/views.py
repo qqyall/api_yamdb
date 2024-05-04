@@ -1,5 +1,5 @@
 from api.permissions import AuthorOrReadOnly, ReadOnly
-from api.serializers import CommentSerializer, ReviewSerializer
+from api_yamdb.api.serializers import CommentSerializer, ReviewSerializer
 from rest_framework import viewsets
 from reviews.models import Comment, Review
 

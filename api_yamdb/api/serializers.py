@@ -1,26 +1,31 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from reviews.models import Category, Comment, Genre, MyUser, Review, Title
+
+from reviews.models import Category, Comment, Genre, User, Review, Title
+from .utils import MAX_LEN_EMAIL, MAX_LEN_USERNAME
+
+#MAX_LEN_EMAIL = 254
+#MAX_LEN_USERNAME = 150
 
 
-class MyUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MyUser
+        model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
         extra_kwargs = {
             'username': {'required': True},
             'email': {'required': True,
                       'validators':
-                      [UniqueValidator(queryset=MyUser.objects.all())]},
+                      [UniqueValidator(queryset=User.objects.all())]},
             'role': {'required': False},
             'confirmation_code': {'write_only': True}
         }
 
     def validate_email(self, value):
-        if len(value) > 254:
+        if len(value) > MAX_LEN_EMAIL:
             raise serializers.ValidationError(
-                "Email must not exceed 254 characters.")
+                'Email must not exceed {MAX_LEN_EMAIL} characters.')
         return value
 
     def validate_username(self, value):
@@ -28,9 +33,9 @@ class MyUserSerializer(serializers.ModelSerializer):
         if value.lower() in restricted_usernames:
             raise serializers.ValidationError(
                 'This username is restricted and cannot be used.')
-        if len(value) > 150:
+        if len(value) > MAX_LEN_USERNAME:
             raise serializers.ValidationError(
-                'Username must not exceed 150 characters.')
+                'Username must not exceed {MAX_LEN_USERNAME} characters.')
         return value
 
     def to_representation(self, instance):
@@ -41,8 +46,6 @@ class MyUserSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.method == 'POST':
             included_fields = request.data.keys()
-            return {
-                field: ret[field] for field in included_fields if field in ret}
             return {
                 field: ret[field] for field in included_fields if field in ret}
         return ret

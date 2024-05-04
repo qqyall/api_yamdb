@@ -6,9 +6,10 @@ class IsAdminOrReadOnly(BasePermission):
     """Allows access only to the owner of the object."""
 
     def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        return obj == request.user
+        return (
+            request.method in SAFE_METHODS
+            or obj == request.user
+        )
 
 
 class IsAdminOnly(BasePermission):

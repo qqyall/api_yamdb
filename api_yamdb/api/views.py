@@ -12,18 +12,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, Genre, MyUser, Review, Title
+from reviews.models import Category, Genre, User, Review, Title
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, MyUserSerializer, ReviewSerializer,
+                          GenreSerializer, UserSerializer, ReviewSerializer,
                           TitleGetSerializer, TitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = MyUser.objects.all()
-    serializer_class = MyUserSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
@@ -42,12 +42,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class AuthSignup(viewsets.ModelViewSet):
-    queryset = MyUser.objects.all()
-    serializer_class = MyUserSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        user = MyUser.objects.filter(
+        user = User.objects.filter(
             email=request.data.get('email')
         ).first()
 
@@ -103,7 +103,7 @@ class AuthToken(viewsets.ViewSet):
                 {'error': 'Both username and confirmation code are required.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        user = MyUser.objects.filter(username=username).first()
+        user = User.objects.filter(username=username).first()
         if not user:
             return Response({'error': 'Invalid username'},
                             status=status.HTTP_404_NOT_FOUND)
@@ -122,12 +122,12 @@ class UserMeView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
     def get(self, request):
-        serializer = MyUserSerializer(request.user)
+        serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
     def patch(self, request, *args, **kwargs):
         user = request.user
-        serializer = MyUserSerializer(user, data=request.data, partial=True,
+        serializer = UserSerializer(user, data=request.data, partial=True,
                                       context={'request': request})
         if serializer.is_valid():
             serializer.save()

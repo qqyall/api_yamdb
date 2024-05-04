@@ -3,19 +3,22 @@ from datetime import datetime
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
-from users.models import MyUser
+from users.models import User
+from api.utils import (
+    MAX_LEN_NAME_GATEGORY, MAX_LEN_SLUG, MAX_LEN_NAME_GENRE, MAX_LEN_NAME_TITLE
+)
 
 
 class Category(models.Model):
     """Класс категорий."""
 
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_LEN_NAME_GATEGORY,
         verbose_name='Hазвание',
         db_index=True
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_LEN_SLUG,
         verbose_name='slug',
         unique=True,
         validators=[RegexValidator(
@@ -37,12 +40,12 @@ class Genre(models.Model):
     """Класс жанров."""
 
     name = models.CharField(
-        max_length=75,
+        max_length=MAX_LEN_NAME_GENRE,
         verbose_name='Hазвание',
         db_index=True
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_LEN_SLUG,
         verbose_name='slug',
         unique=True,
         validators=[RegexValidator(
@@ -64,7 +67,7 @@ class Title(models.Model):
     """Класс произведений."""
 
     name = models.CharField(
-        max_length=150,
+        max_length=MAX_LEN_NAME_TITLE,
         verbose_name='Hазвание',
         db_index=True
     )
@@ -137,7 +140,7 @@ class Review(models.Model):
     """Добавление отзыва."""
 
     author = models.ForeignKey(
-        MyUser,
+        User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Aвтор'
@@ -189,7 +192,7 @@ class Comment(models.Model):
     """Добавление нового комментария для отзыва."""
 
     author = models.ForeignKey(
-        MyUser,
+        User,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Aвтор'
