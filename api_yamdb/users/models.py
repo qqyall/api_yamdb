@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 
 
-class MyUser(AbstractUser):
+class User(AbstractUser):
     """Пользовательская модель."""
 
     class Meta:
@@ -25,3 +25,19 @@ class MyUser(AbstractUser):
 
     def check_confirmation_code(self, code):
         return self.confirmation_code == code
+
+    @property
+    def is_admin(self):
+        return self.role == 'admin'
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'
+
+    @property
+    def is_user(self):
+        return self.role == 'user'
+
+    @property
+    def is_super_user(self):
+        return self.is_superuser

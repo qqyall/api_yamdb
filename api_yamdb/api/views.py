@@ -10,49 +10,38 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, Genre, MyUser, Review, Title
+from reviews.models import Category, Genre, User, Review, Title
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, MyUserSerializer, ReviewSerializer,
+                          GenreSerializer, UserSerializer, ReviewSerializer,
                           TitleGetSerializer, TitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = MyUser.objects.all()
-    serializer_class = MyUserSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     permission_classes = [IsAdminOnly]
-
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [IsAdminOnly()]
-        return super().get_permissions()
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response({'detail': 'Method "PUT" not allowed.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
+    http_method_names = ['get', 'post', 'delete', 'head',
+                         'options', 'trace', 'patch']
 
 
 class AuthSignup(viewsets.ModelViewSet):
-    queryset = MyUser.objects.all()
-    serializer_class = MyUserSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        user = MyUser.objects.filter(
+        user = User.objects.filter(
             email=request.data.get('email')
         ).first()
 
         if user and user.username == request.data.get('username'):
-            # Generate a new confirmation code and send it
             confirmation_code = user.generate_confirmation_code()
             send_mail(
                 'Your New Confirmation Code',
@@ -65,13 +54,11 @@ class AuthSignup(viewsets.ModelViewSet):
                             status=status.HTTP_200_OK)
 
         if user:
-            # Block registration if username or email already used differently
             return Response(
                 {"detail": "User with this email or username already exists."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Handle new user registration
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -103,7 +90,7 @@ class AuthToken(viewsets.ViewSet):
                 {'error': 'Both username and confirmation code are required.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        user = MyUser.objects.filter(username=username).first()
+        user = User.objects.filter(username=username).first()
         if not user:
             return Response({'error': 'Invalid username'},
                             status=status.HTTP_404_NOT_FOUND)
@@ -122,13 +109,13 @@ class UserMeView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
     def get(self, request):
-        serializer = MyUserSerializer(request.user)
+        serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
     def patch(self, request, *args, **kwargs):
         user = request.user
-        serializer = MyUserSerializer(user, data=request.data, partial=True,
-                                      context={'request': request})
+        serializer = UserSerializer(user, data=request.data, partial=True,
+                                    context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
