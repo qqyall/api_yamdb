@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, User, Review, Title
-from .utils import MAX_LEN_EMAIL, MAX_LEN_USERNAME
+from .constans import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES
 
 #MAX_LEN_EMAIL = 254
 #MAX_LEN_USERNAME = 150
@@ -29,8 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def validate_username(self, value):
-        restricted_usernames = ['me', 'admin', 'null']
-        if value.lower() in restricted_usernames:
+        if value.lower() in RESTRICTED_USERNAMES:
             raise serializers.ValidationError(
                 'This username is restricted and cannot be used.')
         if len(value) > MAX_LEN_USERNAME:
@@ -100,6 +99,9 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True,
         slug_field='slug',
+        allow_empty=False,
+        allow_null=False,
+
     )
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -113,14 +115,14 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def to_representation(self, title):
         """Определяет какой сериализатор будет использоваться для чтения."""
-        serializer = TitleGetSerializer(title)
-        return serializer.data
+        return TitleGetSerializer(title).data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор класса Review."""
 
-    author = serializers.StringRelatedField(
+    author = serializers.SlugRelatedField(
+        slug_field='username',
         read_only=True
     )
 
@@ -134,7 +136,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             'pub_date',
         )
         read_only_fields = ('id', 'title', 'author', 'pub_date')
-
+    
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
 

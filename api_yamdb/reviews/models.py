@@ -4,7 +4,7 @@ from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
 from users.models import User
-from api.utils import (
+from api.constans import (
     MAX_LEN_NAME_GATEGORY, MAX_LEN_SLUG, MAX_LEN_NAME_GENRE, MAX_LEN_NAME_TITLE
 )
 
