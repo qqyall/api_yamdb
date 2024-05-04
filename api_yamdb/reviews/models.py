@@ -3,7 +3,7 @@ from datetime import datetime
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
-from users.models import MyUser
+from users.models import User
 
 
 class Category(models.Model):
@@ -137,7 +137,7 @@ class Review(models.Model):
     """Добавление отзыва."""
 
     author = models.ForeignKey(
-        MyUser,
+        User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Aвтор'
@@ -189,7 +189,7 @@ class Comment(models.Model):
     """Добавление нового комментария для отзыва."""
 
     author = models.ForeignKey(
-        MyUser,
+        User,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Aвтор'

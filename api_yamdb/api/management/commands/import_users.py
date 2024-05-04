@@ -2,7 +2,7 @@ import csv
 
 
 from django.core.management.base import BaseCommand
-from users.models import MyUser
+from users.models import User
 
 
 class Command(BaseCommand):
@@ -21,7 +21,7 @@ class Command(BaseCommand):
             reader = csv.DictReader(file)
             users_created = 0
             for row in reader:
-                _, created = MyUser.objects.get_or_create(
+                _, created = User.objects.get_or_create(
                     id=row['id'],
                     defaults={
                         'username': row['username'],
