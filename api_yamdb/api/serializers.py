@@ -1,18 +1,20 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from reviews.models import Category, Comment, Genre, User, Review, Title
-from rest_framework.validators import UniqueValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
-from reviews.models import User
-from .constants import RESTRICTED_USERNAMES
+
+from reviews.models import Category, Comment, Genre, User, Review, Title
+from .constans import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES
+
+#MAX_LEN_EMAIL = 254
+#MAX_LEN_USERNAME = 150
 
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=MAX_LEN_USERNAME,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(150),
+            MaxLengthValidator(MAX_LEN_USERNAME),
             RegexValidator(r'^[\w.@+-]+$',
                            message='Username must consist of letters,'
                            'digits, or @/./+/-/_ characters.')
@@ -21,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(254)
+            MaxLengthValidator(MAX_LEN_EMAIL)
         ]
     )
 
@@ -52,7 +54,6 @@ class UserSerializer(serializers.ModelSerializer):
             if not self.context['request'].user.is_superuser:
                 validated_data.pop('role', None)
         return super().update(instance, validated_data)
-
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -98,6 +99,9 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True,
         slug_field='slug',
+        allow_empty=False,
+        allow_null=False,
+
     )
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -111,14 +115,14 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def to_representation(self, title):
         """Определяет какой сериализатор будет использоваться для чтения."""
-        serializer = TitleGetSerializer(title)
-        return serializer.data
+        return TitleGetSerializer(title).data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор класса Review."""
 
-    author = serializers.StringRelatedField(
+    author = serializers.SlugRelatedField(
+        slug_field='username',
         read_only=True
     )
 
@@ -132,7 +136,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             'pub_date',
         )
         read_only_fields = ('id', 'title', 'author', 'pub_date')
-
+    
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
 
