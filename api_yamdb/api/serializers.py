@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from django.core.validators import MaxLengthValidator, RegexValidator
 
 from reviews.models import Category, Comment, Genre, User, Review, Title
 from .constans import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES
@@ -9,45 +10,44 @@ from .constans import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES
 
 
 class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=MAX_LEN_USERNAME,
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            MaxLengthValidator(MAX_LEN_USERNAME),
+            RegexValidator(r'^[\w.@+-]+$',
+                           message='Username must consist of letters,'
+                           'digits, or @/./+/-/_ characters.')
+        ]
+    )
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            MaxLengthValidator(MAX_LEN_EMAIL)
+        ]
+    )
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-        extra_kwargs = {
-            'username': {'required': True},
-            'email': {'required': True,
-                      'validators':
-                      [UniqueValidator(queryset=User.objects.all())]},
-            'role': {'required': False},
-            'confirmation_code': {'write_only': True}
-        }
-
-    def validate_email(self, value):
-        if len(value) > MAX_LEN_EMAIL:
-            raise serializers.ValidationError(
-                'Email must not exceed {MAX_LEN_EMAIL} characters.')
-        return value
 
     def validate_username(self, value):
         if value.lower() in RESTRICTED_USERNAMES:
             raise serializers.ValidationError(
                 'This username is restricted and cannot be used.')
-        if len(value) > MAX_LEN_USERNAME:
-            raise serializers.ValidationError(
-                'Username must not exceed {MAX_LEN_USERNAME} characters.')
         return value
 
     def to_representation(self, instance):
-        """Modify the output data to only include
-        fields that were in the input data."""
-
-        ret = super().to_representation(instance)
+        representation_data = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == 'POST':
             included_fields = request.data.keys()
             return {
-                field: ret[field] for field in included_fields if field in ret}
-        return ret
+                field: representation_data[field]
+                for field in included_fields if field in representation_data
+            }
+        return representation_data
 
     def update(self, instance, validated_data):
         if 'role' in validated_data:

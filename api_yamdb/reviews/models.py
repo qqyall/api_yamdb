@@ -9,6 +9,7 @@ from api.constans import (
 )
 
 
+
 class Category(models.Model):
     """Класс категорий."""
 
