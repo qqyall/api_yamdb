@@ -128,17 +128,13 @@ class TitlesViewSet(viewsets.ModelViewSet):
     permission_classes = (AnonimReadOnly | IsSuperUserOrIsAdminOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    http_method_names = ['get', 'post', 'delete', 'head',
+                         'options', 'trace', 'patch']
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return TitleGetSerializer
         return TitleSerializer
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response({'detail': 'Method "PUT" not allowed.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
 
 
 class GenresViewSet(CreateListDestroyViewSet):
@@ -155,6 +151,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserIsAdminIsModeratorIsAuthor)
+    http_method_names = ['get', 'post', 'delete', 'head',
+                         'options', 'trace', 'patch']
 
     def get_title(self):
         """Возвращает объект текущего произведения."""
@@ -173,17 +171,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
             title=self.get_title()
         )
 
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response({'detail': 'Method "PUT" not allowed.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserIsAdminIsModeratorIsAuthor)
+    http_method_names = ['get', 'post', 'delete', 'head',
+                         'options', 'trace', 'patch']
 
     def get_review(self):
         """Возвращает объект текущего отзыва."""
@@ -201,9 +195,3 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=self.get_review()
         )
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response({'detail': 'Method "PUT" not allowed.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)

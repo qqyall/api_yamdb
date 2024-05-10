@@ -7,9 +7,6 @@ from api.constans import MAX_LEN_ROLE_USER, MAX_LEN_CODE_USER, LEN_CODE_USER
 class User(AbstractUser):
     """Пользовательская модель."""
 
-    class Meta:
-        ordering = ['id']
-
     bio = models.TextField('Биография', blank=True)
     email = models.EmailField(unique=True, blank=False, null=False)
     role = models.CharField(
@@ -19,6 +16,9 @@ class User(AbstractUser):
     confirmation_code = models.CharField(
         'Confirmation Code', max_length=MAX_LEN_CODE_USER, blank=True
     )
+
+    class Meta:
+        ordering = ['id']
 
     def generate_confirmation_code(self):
         self.confirmation_code = get_random_string(length=LEN_CODE_USER)

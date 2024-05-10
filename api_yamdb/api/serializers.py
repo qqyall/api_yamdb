@@ -5,9 +5,6 @@ from django.core.validators import MaxLengthValidator, RegexValidator
 from reviews.models import Category, Comment, Genre, User, Review, Title
 from .constans import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES
 
-#MAX_LEN_EMAIL = 254
-#MAX_LEN_USERNAME = 150
-
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -136,11 +133,11 @@ class ReviewSerializer(serializers.ModelSerializer):
             'pub_date',
         )
         read_only_fields = ('id', 'title', 'author', 'pub_date')
-    
+
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
 
-        if not self.context.get('request').method == 'POST':
+        if self.context.get('request').method != 'POST':
             return data
         author = self.context.get('request').user
         title_id = self.context.get('view').kwargs.get('title_id')
