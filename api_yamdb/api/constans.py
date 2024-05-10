@@ -1,4 +1,6 @@
 """Константы."""
+
+
 MAX_LEN_NAME_GATEGORY = 256
 MAX_LEN_SLUG = 50
 MAX_LEN_NAME_GENRE = 75

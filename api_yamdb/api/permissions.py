@@ -50,7 +50,7 @@ class IsSuperUserIsAdminIsModeratorIsAuthor(BasePermission):
         return (
             request.method in SAFE_METHODS
             or request.user.is_authenticated
-            and (request.user.role == 'admin'
-                 or request.user.role == 'moderator'
+            and (request.user.is_admin
+                 or request.user.is_moderator
                  or request.user == obj.author)
         )
