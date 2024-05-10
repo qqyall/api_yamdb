@@ -122,6 +122,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True
     )
+    score = serializers.IntegerField(
+        min_value=1,
+        max_value=10
+    )
 
     class Meta:
         model = Review

@@ -144,18 +144,7 @@ class Review(models.Model):
     text = models.TextField(
         verbose_name='текст'
     )
-    score = models.PositiveSmallIntegerField(
-        validators=[
-            MinValueValidator(
-                1,
-                message='Введенная оценка ниже допустимой'
-            ),
-            MaxValueValidator(
-                10,
-                message='Введенная оценка выше допустимой'
-            ),
-        ]
-    )
+    score = models.PositiveSmallIntegerField()
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата публикации',
