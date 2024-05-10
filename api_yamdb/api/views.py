@@ -7,7 +7,10 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, action
+from rest_framework.permissions import (
+    AllowAny, IsAuthenticatedOrReadOnly
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,9 +18,10 @@ from reviews.models import Category, Genre, User, Review, Title
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, UserSerializer, ReviewSerializer,
-                          TitleGetSerializer, TitleSerializer)
+from .serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer, UserSerializer,
+    ReviewSerializer, TitleGetSerializer, TitleSerializer
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,8 +34,36 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'head',
                          'options', 'trace', 'patch']
 
+    @action(
+        methods=['GET', 'PATCH'],
+        detail=False,
+        url_path='me',
+        url_name='me',
+        permission_classes=[permissions.IsAuthenticated, IsAdminOrReadOnly],
+    )
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if request.method == 'PATCH':
+            serializer = UserSerializer(
+                request.user, data=request.data, partial=True,
+                context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class UserMeView(APIView):
+    pass
+
 
 class AuthSignup(viewsets.ModelViewSet):
+    """Регистрация новых пользователей."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
@@ -103,23 +135,6 @@ class AuthToken(viewsets.ViewSet):
             )
         return Response({'error': 'Invalid confirmation code'},
                         status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserMeView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
-
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-
-    def patch(self, request, *args, **kwargs):
-        user = request.user
-        serializer = UserSerializer(user, data=request.data, partial=True,
-                                    context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
