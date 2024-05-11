@@ -3,7 +3,7 @@ from rest_framework.validators import UniqueValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
 
 from reviews.models import Category, Comment, Genre, User, Review, Title
-from .constans import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES
+from .constants import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES, LEN_CODE_USER
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -163,3 +163,4 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('id', 'author', 'pub_date')
+
