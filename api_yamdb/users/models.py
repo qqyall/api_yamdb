@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.crypto import get_random_string
-from api.constants import MAX_LEN_ROLE_USER, MAX_LEN_CODE_USER, LEN_CODE_USER
+
+from api.constants import LEN_CODE_USER, MAX_LEN_CODE_USER, MAX_LEN_ROLE_USER
 
 
 class User(AbstractUser):

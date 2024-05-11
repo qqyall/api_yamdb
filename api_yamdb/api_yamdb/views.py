@@ -1,7 +1,7 @@
-from api.serializers import (AuthorOrReadOnly, ReadOnly,
-                             CommentSerializer, ReviewSerializer)
-
 from rest_framework import viewsets
+
+from api.serializers import (AuthorOrReadOnly, CommentSerializer, ReadOnly,
+                             ReviewSerializer)
 from reviews.models import Comment, Review
 
 

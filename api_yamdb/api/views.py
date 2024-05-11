@@ -1,28 +1,26 @@
-from api.permissions import (AnonimReadOnly, IsAdminOnly, IsAdminOrReadOnly,
-                             IsSuperUserIsAdminIsModeratorIsAuthor,
-                             IsSuperUserOrIsAdminOnly)
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.permissions import (
-    AllowAny, IsAuthenticatedOrReadOnly
-)
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, Genre, User, Review, Title
+
+from api.permissions import (AnonimReadOnly, IsAdminOnly, IsAdminOrReadOnly,
+                             IsSuperUserIsAdminIsModeratorIsAuthor,
+                             IsSuperUserOrIsAdminOnly)
+from reviews.models import Category, Genre, Review, Title, User
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .serializers import (
-    CategorySerializer, CommentSerializer, GenreSerializer, UserSerializer,
-    ReviewSerializer, TitleGetSerializer, TitleSerializer, AuthTokenSerializer, 
-    AuthSignupSerializer
-)
+from .serializers import (AuthSignupSerializer, AuthTokenSerializer,
+                          CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleGetSerializer, TitleSerializer, UserSerializer)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -50,7 +48,7 @@ def auth_signup(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     if serializer.is_valid():
-        user = serializer.save() 
+        user = serializer.save()
         confirmation_code = user.generate_confirmation_code()
         send_mail(
             'Your Confirmation Code',
@@ -60,7 +58,7 @@ def auth_signup(request):
             fail_silently=False,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -108,7 +106,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated, IsAdminOrReadOnly],
     )
     def me(self, request):
-        serializer = UserSerializer(request.user)      
+        serializer = UserSerializer(request.user)
         if request.method == 'PATCH':
             serializer = UserSerializer(
                 request.user, data=request.data, partial=True,
