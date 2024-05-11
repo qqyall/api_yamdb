@@ -1,11 +1,10 @@
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import RegexValidator
 from django.db import models
-from users.models import User
-from api.constants import (
-    MAX_LEN_NAME_GATEGORY, MAX_LEN_SLUG, MAX_LEN_NAME_GENRE, MAX_LEN_NAME_TITLE
-)
+
+from api.constants import (MAX_LEN_NAME_GATEGORY, MAX_LEN_NAME_GENRE,
+                           MAX_LEN_NAME_TITLE, MAX_LEN_SLUG)
 from api.validators import year_validator
+from users.models import User
 
 
 class Category(models.Model):
