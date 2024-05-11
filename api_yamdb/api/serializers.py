@@ -1,9 +1,15 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, RegexValidator
 
 from reviews.models import Category, Comment, Genre, User, Review, Title
-from .constants import MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES, LEN_CODE_USER
+from .constants import (
+    MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES, MIN_VALUE_SCORE,
+    MAX_VALUE_SCORE
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -123,8 +129,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True
     )
     score = serializers.IntegerField(
-        min_value=1,
-        max_value=10
+        min_value=MIN_VALUE_SCORE,
+        max_value=MAX_VALUE_SCORE
     )
 
     class Meta:
@@ -164,3 +170,21 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('id', 'author', 'pub_date')
 
+
+class AuthSignupSerializer(serializers.ModelSerializer):
+
+    def validate(self, data):
+        if data['username'] == 'me':
+            raise ValidationError('Нельзя использовать логин me')
+        return data
+
+    class Meta:
+        model = User
+        fields = ('email', 'username')
+
+
+class AuthTokenSerializer(serializers.Serializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
