@@ -1,5 +1,8 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, RegexValidator
 
 from reviews.models import Category, Comment, Genre, User, Review, Title
@@ -164,3 +167,9 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('id', 'author', 'pub_date')
 
+
+class AuthTokenSerializer(serializers.Serializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
