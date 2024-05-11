@@ -20,8 +20,47 @@ from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer, UserSerializer,
-    ReviewSerializer, TitleGetSerializer, TitleSerializer, AuthTokenSerializer
+    ReviewSerializer, TitleGetSerializer, TitleSerializer, AuthTokenSerializer, 
+    AuthSignupSerializer
 )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def auth_signup(request):
+    """Регистрация новых пользователей."""
+    serializer = AuthSignupSerializer(data=request.data)
+    user = User.objects.filter(
+        email=request.data.get('email')
+    ).first()
+    if user and user.username == request.data.get('username'):
+        confirmation_code = user.generate_confirmation_code()
+        send_mail(
+            'Your New Confirmation Code',
+            f'Your new confirmation code is {confirmation_code}',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        return Response({'email': user.email, 'username': user.username},
+                        status=status.HTTP_200_OK)
+
+    if user:
+        return Response(
+            {"detail": "User with this email or username already exists."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if serializer.is_valid():
+        user = serializer.save() 
+        confirmation_code = user.generate_confirmation_code()
+        send_mail(
+            'Your Confirmation Code',
+            f'Your confirmation code is {confirmation_code}',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
 
 
 @api_view(['POST'])
@@ -78,50 +117,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class AuthSignup(viewsets.ModelViewSet):
-    """Регистрация новых пользователей."""
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        user = User.objects.filter(
-            email=request.data.get('email')
-        ).first()
-
-        if user and user.username == request.data.get('username'):
-            confirmation_code = user.generate_confirmation_code()
-            send_mail(
-                'Your New Confirmation Code',
-                f'Your new confirmation code is {confirmation_code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-            return Response({'email': user.email, 'username': user.username},
-                            status=status.HTTP_200_OK)
-
-        if user:
-            return Response(
-                {"detail": "User with this email or username already exists."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            confirmation_code = user.generate_confirmation_code()
-            send_mail(
-                'Your Confirmation Code',
-                f'Your confirmation code is {confirmation_code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
