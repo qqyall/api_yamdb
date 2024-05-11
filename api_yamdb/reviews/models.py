@@ -1,25 +1,26 @@
-from datetime import datetime
-
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
 from users.models import User
+from api.constants import (
+    MAX_LEN_NAME_GATEGORY, MAX_LEN_SLUG, MAX_LEN_NAME_GENRE, MAX_LEN_NAME_TITLE
+)
+from api.validators import year_validator
 
 
 class Category(models.Model):
     """Класс категорий."""
 
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_LEN_NAME_GATEGORY,
         verbose_name='Hазвание',
         db_index=True
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_LEN_SLUG,
         verbose_name='slug',
         unique=True,
         validators=[RegexValidator(
-            regex=r'^[-a-zA-Z0-9_]+$',
             message='Слаг категории содержит недопустимый символ'
         )]
     )
@@ -37,12 +38,12 @@ class Genre(models.Model):
     """Класс жанров."""
 
     name = models.CharField(
-        max_length=75,
+        max_length=MAX_LEN_NAME_GENRE,
         verbose_name='Hазвание',
         db_index=True
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_LEN_SLUG,
         verbose_name='slug',
         unique=True,
         validators=[RegexValidator(
@@ -64,22 +65,13 @@ class Title(models.Model):
     """Класс произведений."""
 
     name = models.CharField(
-        max_length=150,
+        max_length=MAX_LEN_NAME_TITLE,
         verbose_name='Hазвание',
         db_index=True
     )
     year = models.PositiveIntegerField(
         verbose_name='год выпуска',
-        validators=[
-            MinValueValidator(
-                0,
-                message='Значение года не может быть отрицательным'
-            ),
-            MaxValueValidator(
-                int(datetime.now().year),
-                message='Значение года не может быть больше текущего'
-            )
-        ],
+        validators=[year_validator],
         db_index=True
     )
     description = models.TextField(
@@ -152,18 +144,7 @@ class Review(models.Model):
     text = models.TextField(
         verbose_name='текст'
     )
-    score = models.PositiveSmallIntegerField(
-        validators=[
-            MinValueValidator(
-                1,
-                message='Введенная оценка ниже допустимой'
-            ),
-            MaxValueValidator(
-                10,
-                message='Введенная оценка выше допустимой'
-            ),
-        ]
-    )
+    score = models.PositiveSmallIntegerField()
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата публикации',

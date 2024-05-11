@@ -1,18 +1,23 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from reviews.models import Category, Comment, Genre, User, Review, Title
-from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, RegexValidator
-from reviews.models import User
-from .constants import RESTRICTED_USERNAMES
+
+from reviews.models import Category, Comment, Genre, User, Review, Title
+from .constants import (
+    MAX_LEN_EMAIL, MAX_LEN_USERNAME, RESTRICTED_USERNAMES, MIN_VALUE_SCORE,
+    MAX_VALUE_SCORE
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=MAX_LEN_USERNAME,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(150),
+            MaxLengthValidator(MAX_LEN_USERNAME),
             RegexValidator(r'^[\w.@+-]+$',
                            message='Username must consist of letters,'
                            'digits, or @/./+/-/_ characters.')
@@ -21,7 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(254)
+            MaxLengthValidator(MAX_LEN_EMAIL)
         ]
     )
 
@@ -52,7 +57,6 @@ class UserSerializer(serializers.ModelSerializer):
             if not self.context['request'].user.is_superuser:
                 validated_data.pop('role', None)
         return super().update(instance, validated_data)
-
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -98,6 +102,9 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True,
         slug_field='slug',
+        allow_empty=False,
+        allow_null=False,
+
     )
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -111,15 +118,19 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def to_representation(self, title):
         """Определяет какой сериализатор будет использоваться для чтения."""
-        serializer = TitleGetSerializer(title)
-        return serializer.data
+        return TitleGetSerializer(title).data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор класса Review."""
 
-    author = serializers.StringRelatedField(
+    author = serializers.SlugRelatedField(
+        slug_field='username',
         read_only=True
+    )
+    score = serializers.IntegerField(
+        min_value=MIN_VALUE_SCORE,
+        max_value=MAX_VALUE_SCORE
     )
 
     class Meta:
@@ -136,7 +147,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
 
-        if not self.context.get('request').method == 'POST':
+        if self.context.get('request').method != 'POST':
             return data
         author = self.context.get('request').user
         title_id = self.context.get('view').kwargs.get('title_id')
@@ -158,3 +169,22 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('id', 'author', 'pub_date')
+
+
+class AuthSignupSerializer(serializers.ModelSerializer):
+
+    def validate(self, data):
+        if data['username'] == 'me':
+            raise ValidationError('Нельзя использовать логин me')
+        return data
+
+    class Meta:
+        model = User
+        fields = ('email', 'username')
+
+
+class AuthTokenSerializer(serializers.Serializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
