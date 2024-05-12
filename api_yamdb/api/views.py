@@ -20,10 +20,11 @@ from .serializers import (AuthSignupSerializer, AuthTokenSerializer,
                           CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleGetSerializer, TitleSerializer, UserSerializer)
+from .constants import HTTP_METHOD_NAMES
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
+@api_view(('POST',))
+@permission_classes((AllowAny,))
 def auth_signup(request):
     """Регистрация новых пользователей."""
     serializer = AuthSignupSerializer(data=request.data)
@@ -36,7 +37,7 @@ def auth_signup(request):
             'Your New Confirmation Code',
             f'Your new confirmation code is {confirmation_code}',
             settings.DEFAULT_FROM_EMAIL,
-            [user.email],
+            (user.email,),
             fail_silently=False,
         )
         return Response({'email': user.email, 'username': user.username},
@@ -44,7 +45,7 @@ def auth_signup(request):
 
     if user:
         return Response(
-            {"detail": "User with this email or username already exists."},
+            {'detail': 'User with this email or username already exists.'},
             status=status.HTTP_400_BAD_REQUEST
         )
     if serializer.is_valid():
@@ -54,15 +55,15 @@ def auth_signup(request):
             'Your Confirmation Code',
             f'Your confirmation code is {confirmation_code}',
             settings.DEFAULT_FROM_EMAIL,
-            [user.email],
+            (user.email,),
             fail_silently=False,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
+@api_view(('POST',))
+@permission_classes((AllowAny,))
 def auth_token(request):
     serializer = AuthTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -94,16 +95,14 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    permission_classes = [IsAdminOnly]
-    http_method_names = ['get', 'post', 'delete', 'head',
-                         'options', 'trace', 'patch']
-
+    permission_classes = (IsAdminOnly,)
+    http_method_names = HTTP_METHOD_NAMES
     @action(
-        methods=['GET', 'PATCH'],
+        methods=('GET', 'PATCH'),
         detail=False,
         url_path='me',
         url_name='me',
-        permission_classes=[permissions.IsAuthenticated, IsAdminOrReadOnly],
+        permission_classes=(permissions.IsAuthenticated, IsAdminOrReadOnly),
     )
     def me(self, request):
         serializer = UserSerializer(request.user)
@@ -123,8 +122,8 @@ class TitlesViewSet(viewsets.ModelViewSet):
     permission_classes = (AnonimReadOnly | IsSuperUserOrIsAdminOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    http_method_names = ['get', 'post', 'delete', 'head',
-                         'options', 'trace', 'patch']
+    http_method_names = HTTP_METHOD_NAMES
+    ordering_fields = ('name', 'rating', 'year', 'genre', 'category')
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -146,8 +145,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserIsAdminIsModeratorIsAuthor)
-    http_method_names = ['get', 'post', 'delete', 'head',
-                         'options', 'trace', 'patch']
+    http_method_names = HTTP_METHOD_NAMES
 
     def get_title(self):
         """Возвращает объект текущего произведения."""
@@ -171,8 +169,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsSuperUserIsAdminIsModeratorIsAuthor)
-    http_method_names = ['get', 'post', 'delete', 'head',
-                         'options', 'trace', 'patch']
+    http_method_names = HTTP_METHOD_NAMES
 
     def get_review(self):
         """Возвращает объект текущего отзыва."""
