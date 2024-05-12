@@ -1,4 +1,3 @@
-from django.core.validators import RegexValidator
 from django.db import models
 
 from api.constants import (MAX_LEN_NAME_GATEGORY, MAX_LEN_NAME_GENRE,
@@ -19,9 +18,6 @@ class Category(models.Model):
         max_length=MAX_LEN_SLUG,
         verbose_name='slug',
         unique=True,
-        validators=[RegexValidator(
-            message='Слаг категории содержит недопустимый символ'
-        )]
     )
 
     class Meta:
@@ -45,10 +41,6 @@ class Genre(models.Model):
         max_length=MAX_LEN_SLUG,
         verbose_name='slug',
         unique=True,
-        validators=[RegexValidator(
-            regex=r'^[-a-zA-Z0-9_]+$',
-            message='Слаг жанра содержит недопустимый символ'
-        )]
     )
 
     class Meta:

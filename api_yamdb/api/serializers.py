@@ -42,10 +42,9 @@ class UserSerializer(serializers.ModelSerializer):
         representation_data = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == 'POST':
-            included_fields = request.data.keys()
             return {
                 field: representation_data[field]
-                for field in included_fields if field in representation_data
+                for field in request.data.keys() if field in representation_data
             }
         return representation_data
 
