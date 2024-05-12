@@ -44,7 +44,8 @@ class UserSerializer(serializers.ModelSerializer):
         if request and request.method == 'POST':
             return {
                 field: representation_data[field]
-                for field in request.data.keys() if field in representation_data
+                for field in request.data.keys()
+                if field in representation_data
             }
         return representation_data
 
