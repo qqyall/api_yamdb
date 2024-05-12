@@ -97,6 +97,7 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     permission_classes = (IsAdminOnly,)
     http_method_names = HTTP_METHOD_NAMES
+
     @action(
         methods=('GET', 'PATCH'),
         detail=False,

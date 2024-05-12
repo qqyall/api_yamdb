@@ -14,4 +14,4 @@ MAX_VALUE_SCORE = 10
 
 RESTRICTED_USERNAMES = ('me', 'admin', 'null')
 HTTP_METHOD_NAMES = ('get', 'post', 'delete', 'head',
-                         'options', 'trace', 'patch')
+                     'options', 'trace', 'patch')
