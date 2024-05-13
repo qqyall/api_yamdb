@@ -10,7 +10,11 @@ class User(AbstractUser):
     USER: str = 'user'
     MODERATOR: str = 'moderator'
     ADMIN: str = 'admin'
-    CHOICES: tuple[str] = (USER, MODERATOR, ADMIN)
+    CHOICES: list[str] = (
+        (USER, 'User'),
+        (MODERATOR, 'Moderator'),
+        (ADMIN, 'Admin'),
+    )
 
     bio = models.TextField('Биография', blank=True)
     email = models.EmailField(unique=True, blank=False, null=False)
