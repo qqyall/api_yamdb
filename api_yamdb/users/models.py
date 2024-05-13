@@ -10,7 +10,7 @@ class User(AbstractUser):
     USER: str = 'user'
     MODERATOR: str = 'moderator'
     ADMIN: str = 'admin'
-    CHOICES: list[str] = (
+    CHOICES: tuple[tuple[str, str]] = (
         (USER, 'User'),
         (MODERATOR, 'Moderator'),
         (ADMIN, 'Admin'),
